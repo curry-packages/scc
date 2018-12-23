@@ -27,8 +27,8 @@ import Data.Set.RBTree (empty, member, insert)
 data Node a b = Node Int [b] [b] a
  deriving Eq
 
-instance (Eq a, Eq b) => Ord (Node a b) where
-  compare n1 n2 = compare (key n1) (key n2)
+cmpNode :: Node a b -> Node a b -> Bool
+cmpNode n1 n2 = key n1 < key n2
 
 key :: Node a b -> Int
 key (Node k _ _ _) = k
@@ -60,7 +60,7 @@ scc bvs' fvs' = map (map node) . tsort' . tsort . zipWith wrap [0 ..]
   where wrap i n = Node i (bvs' n) (fvs' n) n
 
 tsort :: (Eq a, Eq b) => [Node a b] -> [Node a b]
-tsort xs = snd (dfs xs empty [])
+tsort xs = snd (dfs xs (empty cmpNode) [])
   where
   dfs []        marks stack = (marks, stack)
   dfs (x : xs') marks stack
@@ -71,7 +71,7 @@ tsort xs = snd (dfs xs empty [])
     defs x1          = filter (any (`elem` fvs x1) . bvs) xs
 
 tsort' :: (Eq a, Eq b) => [Node a b] -> [[Node a b]]
-tsort' xs = snd (dfs xs empty [])
+tsort' xs = snd (dfs xs (empty cmpNode) [])
   where
   dfs []        marks stack = (marks, stack)
   dfs (x : xs') marks stack
